@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: '*',
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type']
 }));
@@ -13,12 +13,10 @@ app.use(express.json());
 
 let users = [];
 
-let num = 1;
+let bookLoanId = 1;
+let bookLoans = [];
 
-let Employees = [];
-
-
-
+// ---------------------- Users ----------------------
 
 app.get('/users', (req, res) => {
   res.json(users);
@@ -26,7 +24,6 @@ app.get('/users', (req, res) => {
 
 app.post('/users/registrar', async (req, res) => {
   try {
-    // Check if user already exists
     const existingUser = users.find(u => u.name === req.body.name);
     if (existingUser) {
       return res.status(409).json({ error: "User already exists" });
@@ -45,58 +42,7 @@ app.post('/users/registrar', async (req, res) => {
   }
 });
 
-
-app.get('/emp/:id', (req, res) => {
-  const employeeId = req.params.id;
-  const employee = Employees.find(e => e.id === employeeId);
-
-  if (!employee) {
-    return res.status(404).json({ error: 'Employee not found' });
-  }
-
-  res.json(employee);
-});
-
-app.delete('/emp/delete/:id', (req, res) => {
-  const employeeId = req.params.id;
-  const index = Employees.findIndex(e => e.id === employeeId);
-
-  if (index === -1) {
-    return res.status(404).json({ error: 'Employee not found' });
-  }
-
-  Employees.splice(index, 1); // Remove employee from array
-  res.json({ success: true, message: 'Employee deleted' });
-});
-
-
-
-app.post('/emp/add', async (req, res) => {
-  try {
-    if (Employees.length === 0) {
-      num = 1
-    }
-    const Employe = {
-      id: num.toString(),
-      FirstName: req.body.FirstName,
-      LastName: req.body.LastName,
-      Email: req.body.Email,
-      Phone: req.body.Phone
-    };
-    Employees.push(Employe);
-    res.status(201).send()
-    num++;
-  } catch (error) {
-    res.status(400).send()
-  }
-})
-
-app.get('/emp', async (req, res) => {
-  res.json(Employees);
-})
-
 app.post('/users/login', async (req, res) => {
-  // Fix: Use === for comparison instead of = (assignment)
   const user = users.find(u => u.name === req.body.name);
 
   if (!user) {
@@ -107,7 +53,6 @@ app.post('/users/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(req.body.password, user.password);
 
     if (passwordMatch) {
-      // Return success response with user info
       res.json({
         success: true,
         user: { id: user.id, name: user.name }
@@ -120,8 +65,62 @@ app.post('/users/login', async (req, res) => {
   }
 });
 
-app.listen(3470, () => {
-  console.log('Server running on http://localhost:3470');
+// ---------------------- Book Loans ----------------------
+
+app.get('/loans', (req, res) => {
+  res.json(bookLoans);
 });
 
-setInterval(() => { }, 1000);
+app.get('/loans/:id', (req, res) => {
+  const loanId = req.params.id;
+  const loan = bookLoans.find(l => l.id === loanId);
+
+  if (!loan) {
+    return res.status(404).json({ error: 'Loan not found' });
+  }
+
+  res.json(loan);
+});
+
+app.post('/loans/add', (req, res) => {
+  try {
+    if (bookLoans.length === 0) {
+      bookLoanId = 1;
+    }
+
+    const newLoan = {
+      id: bookLoanId.toString(),
+      bookTitle: req.body.bookTitle,
+      image: req.body.image,
+      description: req.body.description,
+    };
+
+    bookLoans.push(newLoan);
+    bookLoanId++;
+
+    res.status(201).json({ success: true, message: 'Book loan added' });
+  } catch (error) {
+    res.status(400).json({ error: 'Failed to add loan' });
+  }
+});
+
+app.delete('/loans/delete/:id', (req, res) => {
+  const loanId = req.params.id;
+  const index = bookLoans.findIndex(l => l.id === loanId);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Loan not found' });
+  }
+
+  bookLoans.splice(index, 1);
+  res.json({ success: true, message: 'Book loan deleted' });
+});
+
+// ---------------------- Server ----------------------
+
+const PORT = process.env.PORT || 3470;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+setInterval(() => { }, 1000); // Keeps server awake (for some platforms)
