@@ -172,3 +172,14 @@ app.listen(PORT, () => {
 });
 
 setInterval(() => { }, 1000); // Keeps server awake (for some platforms)
+app.delete('/favorites/delete-by-title/:title', (req, res) => {
+  const bookTitle = decodeURIComponent(req.params.title);
+  const index = favorites.findIndex(f => f.bookTitle === bookTitle);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Favorite not found' });
+  }
+
+  favorites.splice(index, 1);
+  res.json({ success: true, message: 'Favorite deleted' });
+});
