@@ -93,6 +93,7 @@ app.post('/loans/add', (req, res) => {
       bookTitle: req.body.bookTitle,
       image: req.body.image,
       description: req.body.description,
+      price: req.body.price,
     };
 
     bookLoans.push(newLoan);
