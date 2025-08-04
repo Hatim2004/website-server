@@ -20,8 +20,6 @@ let favorites = [];
 
 
 
-
-
 // ---------------------- Users ----------------------
 
 app.get('/users', (req, res) => {
@@ -158,6 +156,19 @@ app.delete('/favorites/delete/:title', (req, res) => {
   }
   favorites.splice(index, 1);
   res.json({ success: true, message: 'Removed from favorites' });
+});
+
+
+app.delete('/favorites/delete/:id', (req, res) => {
+  const favoritesId = req.params.id;
+  const index = favorites.findIndex(l => l.id === favoritesId);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Loan not found' });
+  }
+
+  favorites.splice(index, 1);
+  res.json({ success: true, message: 'Book loan deleted' });
 });
 
 
