@@ -15,6 +15,12 @@ let users = [];
 
 let bookLoanId = 1;
 let bookLoans = [];
+let favorites = [];
+
+
+
+
+
 
 // ---------------------- Users ----------------------
 
@@ -116,6 +122,47 @@ app.delete('/loans/delete/:id', (req, res) => {
   bookLoans.splice(index, 1);
   res.json({ success: true, message: 'Book loan deleted' });
 });
+
+
+// ---------------------- favorites books ----------------------
+
+
+app.get('/favorites', (req, res) => {
+  res.json(favorites);
+});
+
+app.post('/favorites/add', (req, res) => {
+  const { bookTitle, image, description, price } = req.body;
+
+  const exists = favorites.find(fav => fav.bookTitle === bookTitle);
+  if (exists) {
+    return res.status(409).json({ error: 'Book already in favorites' });
+  }
+
+  const favorite = {
+    id: Date.now().toString(),
+    bookTitle,
+    image,
+    description,
+    price,
+  };
+  favorites.push(favorite);
+  res.status(201).json({ success: true, message: 'Added to favorites' });
+});
+
+app.delete('/favorites/delete/:title', (req, res) => {
+  const { title } = req.params;
+  const index = favorites.findIndex(f => f.bookTitle === title);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Favorite not found' });
+  }
+  favorites.splice(index, 1);
+  res.json({ success: true, message: 'Removed from favorites' });
+});
+
+
+
+
 
 // ---------------------- Server ----------------------
 
